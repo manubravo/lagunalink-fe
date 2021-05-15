@@ -1,9 +1,11 @@
-import { Container, Grid } from '@material-ui/core'
+import { Grid } from '@material-ui/core'
 import { makeStyles } from '@material-ui/styles'
+import moment from 'moment'
 import React, { useEffect, useState } from 'react'
-import { useSelector } from 'react-redux'
-import { JobOpening } from '../../../components/detail/company/JobOpening'
-import { JobOpeningsWidget } from '../../../components/detail/company/JobOpeningsWidget'
+import { shallowEqual, useDispatch, useSelector } from 'react-redux'
+import { JobOpening } from '../../../components/detail/company/jobOpening/JobOpening'
+import { JobOpeningsWidget } from '../../../components/detail/company/jobOpening/JobOpeningsWidget'
+import { actions } from '../../../redux/company'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -13,6 +15,8 @@ const useStyles = makeStyles(theme => ({
   },
   gridContainer: {
     paddingTop: theme.spacing(3),
+    display: 'flex',
+    justifyContent: 'space-evenly',
   },
   gridItem: {
     flexGrow: 1,
@@ -20,35 +24,46 @@ const useStyles = makeStyles(theme => ({
 }))
 
 export const JobOpeningsView = () => {
-  const company = useSelector(state => state.company)
+  const dispatch = useDispatch()
+  const ownJobOpenings = useSelector(state => state.company.ownJobOpenings, shallowEqual)
   const classes = useStyles()
-  const jobs = company.ownJobOpenings
-  const [jobIndex, setJobIndex] = useState(0)
+  const [jobs, setJobs] = useState(undefined)
   const [jobOpen, setJobOpen] = useState(undefined)
-  // const jobOpen = jobs !== undefined ? jobs[jobIndex] : undefined
-  const handleChange = idx => setJobIndex(idx)
-  const widgetProps = {...company, idx: jobIndex, changeIdx: handleChange}
+  const onView = jobId => {
+    const job = ownJobOpenings.find(j => j.id === jobId)
+    setJobOpen(job)
+  }
+
+  const onRemove = jobId => {
+    dispatch(actions.removeJobOpening(jobId))
+  }
+
+  const widgetProps = { jobs, view: onView, remove: onRemove }
 
   useEffect(() => {
-    if (jobs !== undefined) {
-      const job = jobs[jobIndex]
-      const jobProps = {...job, viewer: true}
-      setJobOpen(jobProps)
+    const _jobs = ownJobOpenings.filter(job => moment(job.hiringDate) > moment())
+    setJobs(_jobs)
+    const job = _jobs[0]
+    const jobProps = { ...job, readOnly: true }
+    setJobOpen(jobProps)
+  }, [ownJobOpenings])
+
+  useEffect(() => {
+    if (jobs){
+      dispatch(actions.getEnrollsOfJobs(jobs))
     }
-  }, [jobIndex, jobs])
+  }, [jobs])
 
   return (
-    <Container maxWidth="lg">
-      <Grid container className={classes.gridContainer} spacing={3}>
-        <Grid item lg={4} md={6} xs={12}>
-          <JobOpeningsWidget {...widgetProps} />
-        </Grid>
-        <Grid item container direction="column" spacing={3} xl={6} lg={8} md={6} xs={12}>
-          <Grid item className={classes.gridItem}>
-            {jobOpen === undefined ? (<span>No tienes ofertas creadas</span>) : (<JobOpening {...jobOpen} />)}
-          </Grid>
+    <Grid container className={classes.gridContainer}>
+      <Grid item xl={4} lg={4} md={6} xs={12}>
+        <JobOpeningsWidget {...widgetProps} />
+      </Grid>
+      <Grid item xl={6} lg={8} md={6} xs={12}>
+        <Grid item className={classes.gridItem}>
+          <JobOpening {...jobOpen} />
         </Grid>
       </Grid>
-    </Container>
+    </Grid>
   )
 }

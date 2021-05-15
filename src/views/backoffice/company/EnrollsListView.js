@@ -1,11 +1,12 @@
 import { Grid, List, ListItem, Paper } from '@material-ui/core'
 import { makeStyles } from '@material-ui/styles'
 import React from 'react'
-import { JobListItem } from '../../components/jobOpening/jobListItem'
+import { JobListItem } from '../../../components/jobOpening/jobListItem'
 import { shallowEqual, useSelector } from 'react-redux'
 import { v4 as uuid } from 'uuid'
 import { useHistory } from 'react-router-dom'
 import moment from 'moment'
+import { EnrollListItem } from '../../../components/detail/company/enrollment/EnrollListItem'
 
 
 const useStyles = makeStyles(theme => ({
@@ -50,9 +51,9 @@ export const DashboardListView = () => {
       <Grid item lg={6}>
         <Paper>
           <List>
-            {jobs && jobs.map(job => (
-            <ListItem key={uuid()} button onClick={() => handleClick(job)}>
-              <JobListItem {...job}/>
+            {enrolls && enrolls.map(enroll => (
+            <ListItem key={uuid()} button onClick={() => handleClick(enroll)}>
+              <EnrollListItem {...enroll}/>
             </ListItem>
             ))}
           </List>

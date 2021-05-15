@@ -24,7 +24,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }))
 
-export const JobListItem = props => {
+export const EnrollListItem = props => {
   const styles = useStyles()
   const {company, thumbnail, position, createdAt} = props
   const _createdAt = dateFormatter(createdAt)

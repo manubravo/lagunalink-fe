@@ -1,9 +1,4 @@
-import {
-  BarChart as BarChartIcon,
-  Settings as SettingsIcon,
-  User as UserIcon,
-  UserPlus as UserPlusIcon,
-} from 'react-feather'
+import { BarChart as BarChartIcon, User as UserIcon, UserPlus as UserPlusIcon } from 'react-feather'
 
 const studentNavConf = {
   role: 'Estudiante',
@@ -22,11 +17,6 @@ const studentNavConf = {
       href: '/app/enrollments',
       icon: UserPlusIcon,
       title: 'Ofertas Aplicadas',
-    },
-    {
-      href: '/app/settings',
-      icon: SettingsIcon,
-      title: 'Configuracion',
     },
   ],
 }

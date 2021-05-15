@@ -218,19 +218,17 @@ const signIn = data => dispatch => {
         dispatch({ type: COMPANY_REGISTER_NEEDED, payload: response.data })
       }
       if (response.status === STATUS_OK) {
-        dispatch(sharedActions.fetchAllCompanies(response.data.access_token))
-        dispatch(sharedActions.fetchAllJobOpen(response.data.access_token))
+        fetchCompaniesAndJobs(dispatch, response.data.access_token)
 
-        if (response.data.user_role === ROLE_STUDENT) {
-          dispatch(studentActions.getProfile(response.data.user_id, response.data.access_token))
-        }
-        if (response.data.user_role === ROLE_COMPANY) {
-          dispatch(companyActions.getProfile(response.data.user_id, response.data.access_token))
-        }
+        getProfile(response.data.user_role, response.data.user_id, response.data.access_token, dispatch)
+
+        const payload = { ...response.data, email: data.email }
+
+        data.rememberMe ? persistInLocalStorage({...payload, token: response.data.access_token}) : persistInSessionStorage({...payload, token: response.data.access_token})
 
         dispatch({
           type: SIGNIN_SUCCESS,
-          payload: { ...response.data, email: data.email },
+          payload
         })
       }
     })
@@ -246,6 +244,7 @@ const signIn = data => dispatch => {
 }
 
 const signOut = () => dispatch => {
+  clearStorage()
   dispatch(studentActions.signOut())
   dispatch(companyActions.signOut())
   dispatch({ type: SIGN_OUT })
@@ -317,6 +316,43 @@ const update = data => (dispatch, getState) => {
   })
 }
 
+const getCredentials = () => dispatch => {
+  const LStoken = localStorage.getItem('token') 
+  const SStoken = sessionStorage.getItem('token')
+
+  if (LStoken) {
+    const email = localStorage.getItem('userEmail')
+    const userId = localStorage.getItem('userId')
+    const role = localStorage.getItem('userRole')
+    const avatar = localStorage.getItem('avatarURI')
+
+    getProfile(role, userId, LStoken, dispatch)
+    fetchCompaniesAndJobs(dispatch, LStoken)
+
+    dispatch({
+      type: SIGNIN_SUCCESS,
+      payload: { email, userId, role, avatar },
+    })
+  }
+
+  if (SStoken) {
+    const email = sessionStorage.getItem('userEmail')
+    const userId = sessionStorage.getItem('userId')
+    const role = sessionStorage.getItem('userRole')
+    const avatar = sessionStorage.getItem('avatarURI')
+
+    getProfile(role, userId, SStoken, dispatch)
+    fetchCompaniesAndJobs(dispatch, SStoken)
+
+    dispatch({
+      type: SIGNIN_SUCCESS,
+      payload: { email, userId, role, avatar },
+    })
+  }
+}
+
+
+
 
 
 
@@ -324,6 +360,7 @@ const update = data => (dispatch, getState) => {
 export const actions = {
   signIn,
   signOut,
+  getCredentials,
   signUp,
   update,
   unsetRegister,
@@ -331,3 +368,39 @@ export const actions = {
   uploadAvatar,
   deleteAvatar
 }
+
+const getProfile = (role, userId, token, dispatch) => {
+  if (role === ROLE_STUDENT) {
+    dispatch(studentActions.getProfile(userId, token))
+  }
+  if (role === ROLE_COMPANY) {
+    dispatch(companyActions.getProfile(userId, token))
+  }
+}
+
+const fetchCompaniesAndJobs = (dispatch, token) => {
+  dispatch(sharedActions.fetchAllCompanies(token))
+  dispatch(sharedActions.fetchAllJobOpen(token))
+}
+
+const persistInLocalStorage = (payload) => {
+  localStorage.setItem('token', payload.token)
+  localStorage.setItem('userEmail', payload.email)
+  localStorage.setItem('userId', payload.user_id)
+  localStorage.setItem('userRole', payload.user_role)
+  localStorage.setItem('avatarURI', payload.avatar)
+}
+
+const persistInSessionStorage = (payload) => {
+  sessionStorage.setItem('token', payload.token)
+  sessionStorage.setItem('userEmail', payload.email)
+  sessionStorage.setItem('userId', payload.user_id)
+  sessionStorage.setItem('userRole', payload.user_role)
+  sessionStorage.setItem('avatarURI', payload.avatar)
+}
+
+const clearStorage = () => {
+  sessionStorage.clear()
+  localStorage.clear()
+}
+
