@@ -25,12 +25,12 @@ const useStyles = makeStyles(theme => ({
 
 export const JobOpeningsView = () => {
   const dispatch = useDispatch()
-  const ownJobOpenings = useSelector(state => state.company.ownJobOpenings, shallowEqual)
+  const jobOpenings = useSelector(state => state.company.jobOpenings, shallowEqual)
   const classes = useStyles()
   const [jobs, setJobs] = useState(undefined)
   const [jobOpen, setJobOpen] = useState(undefined)
   const onView = jobId => {
-    const job = ownJobOpenings.find(j => j.id === jobId)
+    const job = jobOpenings.find(j => j.id === jobId)
     setJobOpen(job)
   }
 
@@ -41,12 +41,13 @@ export const JobOpeningsView = () => {
   const widgetProps = { jobs, view: onView, remove: onRemove }
 
   useEffect(() => {
-    const _jobs = ownJobOpenings.filter(job => moment(job.hiringDate) > moment())
+    if (!jobOpenings.length) {return;}
+    const _jobs = jobOpenings.filter(job => moment(job.hiringDate) > moment())
     setJobs(_jobs)
     const job = _jobs[0]
     const jobProps = { ...job, readOnly: true }
     setJobOpen(jobProps)
-  }, [ownJobOpenings])
+  }, [jobOpenings])
 
   useEffect(() => {
     if (jobs){
@@ -59,7 +60,7 @@ export const JobOpeningsView = () => {
       <Grid item xl={4} lg={4} md={6} xs={12}>
         <JobOpeningsWidget {...widgetProps} />
       </Grid>
-      <Grid item xl={6} lg={8} md={6} xs={12}>
+      <Grid item xl={5} lg={8} md={6} xs={12}>
         <Grid item className={classes.gridItem}>
           <JobOpening {...jobOpen} />
         </Grid>

@@ -14,7 +14,8 @@ const initialStudentState = {
   },
   languages: null,
   jobExperiences: null,
-  enrollments: null,
+  enrolls: null,
+  jobOpenings: null,
   isBusy: false,
   registered: false,
   taskError: null,
@@ -23,11 +24,7 @@ const initialStudentState = {
 // const types
 const STUDENT_REGISTER = 'STUDENT_REGISTER'
 const STUDENT_REGISTER_COMPLETE = 'STUDENT_REGISTER_COMPLETE'
-const GET_PROFILE = 'GET_PROFILE'
-const GET_ENROLLS = 'GET_ENROLLS'
-const GET_ENROLLS_ERROR = 'GET_ENROLLS_ERROR'
-const GET_ENROLLS_COMPLETE = 'GET_ENROLLS_COMPLETE'
-const GET_PROFILE_COMPLETE = 'GET_PROFILE_COMPLETE'
+const SET_PROFILE = 'SET_STUDENT_PROFILE'
 const ENROLL_THIS_JOB = 'ENROLL_THIS_JOB'
 const ENROLL_THIS_JOB_ERROR = 'ENROLL_THIS_JOB_ERROR'
 const ENROLL_THIS_JOB_COMPLETE = 'ENROLL_THIS_JOB_COMPLETE'
@@ -56,43 +53,17 @@ const studentReducer = (state = initialStudentState, action) => {
         isBusy: true,
       }
 
-    case GET_PROFILE:
+    case SET_PROFILE:
       return {
         ...state,
-        isBusy: true,
-      }
-
-    case GET_PROFILE_COMPLETE:
-      return {
-        ...state,
-        isBusy: false,
         name: action.payload.name,
         surname: action.payload.surname,
         lastname: action.payload.lastname,
         qualification: action.payload.qualification,
         languages: action.payload.languages,
         jobExperiences: action.payload.job_experiences,
-      }
-
-    case GET_ENROLLS:
-      return {
-        ...state,
-        taskError: null,
-        isBusy: true,
-      }
-
-    case GET_ENROLLS_ERROR:
-      return {
-        ...state,
-        isBusy: false,
-        taskError: action.payload,
-      }
-
-    case GET_ENROLLS_COMPLETE:
-      return {
-        ...state,
-        isBusy: false,
-        enrollments: action.payload,
+        enrolls: action.payload.enrolls,
+        jobOpenings: action.payload.jobOpenings
       }
 
     case ENROLL_THIS_JOB:
@@ -155,26 +126,15 @@ export default studentReducer
 
 const signOut = () => dispatch => dispatch({ type: SIGN_OUT })
 
-const getProfile = (userId, token) => dispatch => {
-  dispatch({ type: GET_PROFILE })
-  apiProvider
-    .getSingle('students', userId, token)
-    .then(res => {
-      const prefName = `${res.data.student.name} ${res.data.student.surname}`
-      dispatch(userActions.setPrefName(prefName))
-      dispatch(fetchEnrolls(userId, token))
-      dispatch({ type: GET_PROFILE_COMPLETE, payload: res.data.student })
-    })
-    .catch(e => {
-      dispatch({ type: SET_ERROR, payload: e })
-    })
+const setProfile = profile => dispatch => {
+  dispatch({ type: SET_PROFILE, payload: profile })
 }
 
 const registerStudent = data => (dispatch, getState) => {
-  const { token } = getState().user
+  const { accessToken } = getState().user
   dispatch({ type: STUDENT_REGISTER })
   apiProvider
-    .post('students', data, token)
+    .post('students', data, accessToken)
     .then(() => {
       userActions.unsetRegister()
       dispatch({ type: STUDENT_REGISTER_COMPLETE, payload: data })
@@ -183,10 +143,10 @@ const registerStudent = data => (dispatch, getState) => {
 }
 
 const updateStudent = data => (dispatch, getState) => {
-  const { userId, token } = getState().user
+  const { userId, accessToken } = getState().user
   dispatch({ type: STUDENT_UPDATE })
   apiProvider
-    .put('students', userId, data, token)
+    .put('students', userId, data, accessToken)
     .then(res => {
       if (res.status === 200) {
         dispatch({ type: STUDENT_UPDATE_COMPLETE, payload: res.data.student })
@@ -196,7 +156,7 @@ const updateStudent = data => (dispatch, getState) => {
 }
 
 const enrollThisJob = jobId => (dispatch, getState) => {
-  const { userId, token } = getState().user
+  const { userId, accessToken } = getState().user
   const todayDate = Date.now()
   const today = dateToISOString(todayDate)
   const data = {
@@ -206,7 +166,7 @@ const enrollThisJob = jobId => (dispatch, getState) => {
   }
   dispatch({ type: ENROLL_THIS_JOB })
   apiProvider
-    .post(`job_openings/${jobId}/enrollments`, data, token)
+    .post(`job_openings/${jobId}/enrollments`, data, accessToken)
     .then(res => {
       dispatch({ type: ENROLL_THIS_JOB_COMPLETE, payload: res.data.enrollments })
       dispatch(sharedActions.setJobsEnrollable(res.data.enrollments))
@@ -215,10 +175,10 @@ const enrollThisJob = jobId => (dispatch, getState) => {
 }
 
 const unenrollThisJob = enrollId => (dispatch, getState) => {
-  const { token } = getState().user
+  const { accessToken } = getState().user
   dispatch({ type: UNENROLL_THIS_JOB })
   apiProvider
-    .remove(`enrollments`, enrollId, token)
+    .remove(`enrollments`, enrollId, accessToken)
     .then(res => {
       dispatch({ type: UNENROLL_THIS_JOB_COMPLETE, payload: res.data.enrollments })
       dispatch(sharedActions.setJobsEnrollable(res.data.enrollments))
@@ -226,24 +186,13 @@ const unenrollThisJob = enrollId => (dispatch, getState) => {
     .catch(e => dispatch({ type: SET_ERROR, payload: e }))
 }
 
-const fetchEnrolls = (userId, token) => dispatch => {
-  dispatch({ type: GET_ENROLLS })
-  apiProvider.getAll(`students/${userId}/enrollments`, token)
-  .then(res => {
-    dispatch({ type: GET_ENROLLS_COMPLETE, payload: res.data.enrollments })
-    dispatch(sharedActions.setJobsEnrollable(res.data.enrollments))
-  })
-  .catch(e =>{ dispatch({type: GET_ENROLLS_ERROR, payload: e})})
-}
-
 
 
 export const actions = {
   signOut,
-  getProfile,
+  setProfile,
   registerStudent,
   updateStudent,
-  fetchEnrolls,
   enrollThisJob,
   unenrollThisJob,
 }
