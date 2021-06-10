@@ -13,7 +13,7 @@ import { useDispatch } from 'react-redux'
 const useStyles = makeStyles(() => ({
   root: {},
   toolbar: {
-    marginLeft: 256
+    // marginLeft: 256
   },
   avatar: {
     width: 60,
@@ -29,11 +29,18 @@ const TopBar = ({ className, onMobileNavOpen, ...rest }) => {
   return (
     <AppBar className={clsx(classes.root, className)} elevation={3} {...rest}>
       <Toolbar className={classes.toolbar}>
-        <RouterLink to="/">
-          <Logo />
-        </RouterLink>
+        <Hidden mdUp>
+          <IconButton color="inherit" onClick={onMobileNavOpen(true)}>
+            <MenuIcon />
+          </IconButton>
+        </Hidden>
+        <Hidden smDown>
+          <RouterLink to="/">
+            <Logo />
+          </RouterLink>
+        </Hidden>
         <Box flexGrow={1} />
-        <Hidden mdDown>
+        <Hidden smDown>
           <IconButton color="inherit">
             <Badge badgeContent={notifications.length} color="primary" variant="dot">
               <NotificationsIcon />
@@ -43,10 +50,8 @@ const TopBar = ({ className, onMobileNavOpen, ...rest }) => {
             <InputIcon />
           </IconButton>
         </Hidden>
-        <Hidden lgUp>
-          <IconButton color="inherit" onClick={onMobileNavOpen}>
-            <MenuIcon />
-          </IconButton>
+        <Hidden mdUp>
+          <Logo />
         </Hidden>
       </Toolbar>
     </AppBar>

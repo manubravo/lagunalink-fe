@@ -1,15 +1,17 @@
-import { Avatar, Button, Grid, makeStyles, Paper, Typography } from '@material-ui/core'
-import React, { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { useHistory } from 'react-router'
-import { actions } from '../../redux/student'
+import { Button, Grid, makeStyles, Paper, Typography } from '@material-ui/core'
 import { useConfirm } from 'material-ui-confirm'
+import React from 'react'
+import { useDispatch } from 'react-redux'
+import { useHistory } from 'react-router'
+import { StyledAvatar } from '../../components/avatar/StyledAvatar'
+import { actions } from '../../redux/student'
 import { dateFormatter } from '../../services/date/dateFormatter'
 
 const useStyles = makeStyles(theme => ({
   root: {
     height: '100%',
     flexGrow: 1,
+    fontFamily: 'Poppins',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
@@ -27,15 +29,20 @@ const useStyles = makeStyles(theme => ({
     paddingLeft: theme.spacing(1),
   },
   gridSection: {
-    spacing: theme.spacing(2),
+    padding: theme.spacing(2),
   },
-  subSection: {
-    paddingTop: theme.spacing(2),
+  hiring: {
+    fontFamily: 'Roboto',
+    fontWeight: 300,
+    fontSize: '1.8rem',
+    color: theme.palette.secondary.dark
   },
   preTag: {
     whiteSpace: 'pre-wrap',
     fontFamily: 'Roboto',
-    fontSize: '1em',
+    fontSize: '1.2rem',
+    fontWeight: 300,
+    paddingLeft: theme.spacing(2),
   },
   subBody: {
     padding: theme.spacing(1),
@@ -43,127 +50,117 @@ const useStyles = makeStyles(theme => ({
   position: {
     marginTop: theme.spacing(3),
     marginBottom: theme.spacing(3),
-    color: theme.palette.secondary.main,
   },
   actionsSection: {
     display: 'flex',
     justifyContent: 'space-evenly',
     alignItems: 'center',
-    marginBottom: theme.spacing(5)
-  }
+    marginBottom: theme.spacing(5),
+  },
+  companyName: {
+    fontSize: '1.4rem',
+  },
+  jobPosition: {
+    color: theme.palette.primary.dark,
+    fontSize: '2.8rem',
+    fontWeight: 500,
+    letterSpacing: 1.8,
+  },
+  section: {
+    color: theme.palette.primary.main,
+    fontFamily: 'Poppins',
+    fontSize: '1.4rem',
+    fontWeight: 300,
+  },
+  underSection: {
+    color: theme.palette.primary.main,
+    fontFamily: 'Poppins',
+    fontSize: '1.2rem',
+    fontWeight: 300,
+    paddingLeft: theme.spacing(2),
+  },
+  subSection: {
+    marginTop: theme.spacing(2),
+  },
 }))
 
 export const JobOpeningDetailView = props => {
   const history = useHistory()
   const confirm = useConfirm()
-  const { detailId, userRole } = props
+  const { job } = props
   const styles = useStyles()
   const dispatch = useDispatch()
-  const [jobOpening, setJobOpening] = useState({})
-  const [hiringDate, setHiringDate] = useState('')
-  const [company, setCompany] = useState({})
-  const [hideEnroll, setHideEnroll] = useState(true)
-  const shared = useSelector(state => state.shared)
-
-  useEffect(() => {
-    if (shared !== undefined) {
-      const jobOpening = shared.jobOpenings.find(job => job.id === detailId)
-      const company = shared.companies.find(comp => comp.id === jobOpening.company)
-      setJobOpening(jobOpening)
-      setHiringDate(dateFormatter(jobOpening.hiringDate))
-      setCompany(company)
-      const isCompany = userRole !== 'ROLE_STUDENT'
-      const notEnrollable = isCompany || jobOpening.enrolled
-      setHideEnroll(notEnrollable)
-    }
-  }, [shared])
 
   const enrollAction = () => {
     confirm({ description: '¿ Quieres aplicar a esta oferta ?' }).then(() => {
-      dispatch(actions.enrollThisJob(detailId))
+      dispatch(actions.enrollThisJob(job._id || job.id))
       history.goBack()
     })
   }
 
   return (
-    <div className={styles.root}>
-      <Grid xl={7} md={12}>
+    <Grid container className={styles.root}>
+      <Grid lg={8} md={12}>
         <Paper className={styles.container}>
           <Grid container spacing={2} direction="column" alignItems="center">
             <Grid item>
-              <Avatar className={styles.companyAvatar} src={company.avatar} />
+              <StyledAvatar size={150} src={job.companyDetail.avatar} />
             </Grid>
             <Grid item>
-              <Typography variant="h3">{company.name}</Typography>
+              <Typography className={styles.companyName}>{job.companyDetail.name}</Typography>
             </Grid>
             <Grid item className={styles.position}>
-              <Typography variant="h1">{jobOpening.position}</Typography>
+              <Typography className={styles.jobPosition}>{job.position}</Typography>
             </Grid>
             <Grid item container className={styles.actionsSection}>
               <Grid item>
-                <Typography align={'center'} variant="body1">fecha de contratacion: </Typography>
-                <Typography align={'center'} variant="h4">{hiringDate}</Typography>
+                <Typography align={'center'} className={styles.underSection}>
+                  fecha de contratacion:{' '}
+                </Typography>
+                <Typography align={'center'} className={styles.hiring}>
+                  {dateFormatter(job.hiringDate)}
+                </Typography>
               </Grid>
-              {!hideEnroll && (
+              {job.enrollable && (
                 <Grid item>
-                  <Button hidden={hideEnroll} color="primary" variant="contained" onClick={enrollAction}>
+                  <Button color="primary" variant="contained" size="large" onClick={enrollAction}>
                     Aplicar Oferta
                   </Button>
                 </Grid>
               )}
             </Grid>
             <Grid item container className={styles.gridSection}>
-              <Grid item container>
-                <Typography variant="h2" align="left">
-                  Descripcion
-                </Typography>
-              </Grid>
-              <Grid item className={styles.gridBody}>
-                <pre className={styles.preTag}>{jobOpening.description}</pre>
+              <Grid item>
+                <Typography className={styles.section}>Descripcion</Typography>
+                <pre className={styles.preTag}>{job.description}</pre>
               </Grid>
             </Grid>
             <Grid item container className={styles.gridSection}>
-              <Grid item container>
-                <Typography variant="h2" align="left">
-                  Responsabilidades
-                </Typography>
-              </Grid>
-              <Grid item className={styles.gridBody}>
-                <pre className={styles.preTag}>{jobOpening.responsibilities}</pre>
+              <Grid item>
+                <Typography className={styles.section}>Responsabilidades</Typography>
+                <pre className={styles.preTag}>{job.responsibilities}</pre>
               </Grid>
             </Grid>
             <Grid item container>
-              <Grid item container>
-                <Typography variant="h2" align="left">
-                  Condiciones
-                </Typography>
-              </Grid>
-              <Grid item className={styles.gridBody}>
-                <pre className={styles.preTag}>{jobOpening.conditions}</pre>
+              <Grid item>
+                <Typography className={styles.section}>Condiciones</Typography>
+                <pre className={styles.preTag}>{job.conditions}</pre>
               </Grid>
             </Grid>
             <Grid item container>
-              <Grid item container direction="column" className={styles.gridSection}>
-                <Typography variant="h2" align="left">
-                  Requisitos
-                </Typography>
-                <Grid item className={styles.subSection}>
-                  <Typography variant="h4" align="left">
-                    Titulacion
-                  </Typography>
-                  <p className={styles.subBody}>{jobOpening.qualification}</p>
-                </Grid>
-                <Grid item className={styles.subSection}>
-                  <Typography variant="h4" align="left">
-                    Experiencia previa
-                  </Typography>
-                  <p className={styles.subBody}>{jobOpening.prevExperience}</p>
-                </Grid>
+              <Grid item>
+                <Typography className={styles.section}>Requisitos</Typography>
+                <div className={styles.subSection}>
+                  <Typography className={styles.underSection}>Titulacion</Typography>
+                  <p className={styles.preTag}>{job.qualification}</p>
+                  <Typography className={styles.underSection}>Experiencia previa</Typography>
+                  <p className={styles.preTag}>{job.prevExperience}</p>
+                </div>
               </Grid>
             </Grid>
           </Grid>
         </Paper>
       </Grid>
-    </div>
+    </Grid>
   )
 }

@@ -1,19 +1,19 @@
-/* eslint-disable no-unused-vars */
-import { Box, Button, Card, CardHeader, Divider, List, makeStyles } from '@material-ui/core'
+import { Box, Button, List, makeStyles } from '@material-ui/core'
 import { Add } from '@material-ui/icons'
-import React, { useState } from 'react'
+import React from 'react'
 import PerfectScrollbar from 'react-perfect-scrollbar'
+import { useHistory } from 'react-router'
 import { v4 as uuid } from 'uuid'
 import JobItem from './jobItem'
-import { JobOpenDialog } from './JobOpenDialog'
+import { LinkCard } from '../../../shared/Card'
 
 const useStyles = makeStyles(theme => ({
   root: {
     width: '100%',
-    height: 'auto',
   },
   cell: {
     padding: '4px',
+    width: '100%'
   },
   actions: {
     justifyContent: 'flex-end',
@@ -32,25 +32,21 @@ const useStyles = makeStyles(theme => ({
 }))
 
 export const JobOpeningsWidget = props => {
-  const { jobs, view, remove } = props
-  const [dialogShow, setDialogShow] = useState(false)
+  const { jobOpenings } = props
   const classes = useStyles()
-  const hideDialog = () => {
-    setDialogShow(false)
-  }
+  const history = useHistory()
 
   const handleAdd = () => {
-    setDialogShow(true)
+    history.push('/app/job_openings/new')
   }
 
+
   return (
-    <Card className={classes.root}>
-      {dialogShow && <JobOpenDialog closeIt={hideDialog} />}
-      <CardHeader title="Ofertas Publicadas" />
-      <Divider />
+    
+    <LinkCard className={classes.root} title="OFERTAS PUBLICADAS">
       <PerfectScrollbar>
-        <Box className={classes.box} minWidth={500}>
-          <List>{jobs && jobs.map((job, index) => <JobItem key={uuid()} job={job} index={index} {...props} />)}</List>
+        <Box className={classes.box}>
+          <List>{jobOpenings && jobOpenings.map((job, index) => <JobItem key={uuid()} job={job} index={index} {...props} />)}</List>
         </Box>
       </PerfectScrollbar>
       <Box className={classes.footer}>
@@ -58,6 +54,6 @@ export const JobOpeningsWidget = props => {
           Crear Nueva Oferta de Trabajo
         </Button>
       </Box>
-    </Card>
+    </LinkCard>
   )
 }

@@ -1,13 +1,11 @@
-import { Grid, List, ListItem, Paper } from '@material-ui/core'
+import { Divider, Grid, List, ListItem } from '@material-ui/core'
 import { makeStyles } from '@material-ui/styles'
-import React from 'react'
-import { JobListItem } from '../../../components/jobOpening/jobListItem'
-import { shallowEqual, useSelector } from 'react-redux'
-import { v4 as uuid } from 'uuid'
+import React, { useEffect, useState } from 'react'
+import { useSelector } from 'react-redux'
 import { useHistory } from 'react-router-dom'
-import moment from 'moment'
+import { v4 as uuid } from 'uuid'
 import { EnrollListItem } from '../../../components/detail/company/enrollment/EnrollListItem'
-
+import { LinkCard } from '../../../components/shared/Card'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -29,35 +27,43 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
-export const DashboardListView = () => {
+export const EnrollsListView = job => {
+  const { enrolls } = job
   const history = useHistory()
   const classes = useStyles()
-  const companiesFetched = useSelector(state => state.shared.companiesFetched)
-  const jobsOpenFetched = useSelector(state => state.shared.jobsFetched)
-  const companies = useSelector(state => state.shared.companies)
-  const jobOpenings = useSelector(state => state.shared.jobOpenings, shallowEqual)
-  let jobs;
-  if (companiesFetched && jobsOpenFetched){
-    jobs = jobOpenings.filter(job => moment(job.hiringDate) > moment()).map(job => {
-      const comp = companies.find(comp => comp.id === job.company)
-      return {...job, company: comp.name, thumbnail: comp.avatar}
-    })
-  }
+  const studentsAvatar = useSelector(state => state.company.studentsAvatar)
+  const avatarsFetched = useSelector(state => state.company.avatarsFetched)
+  const [enrollments, setEnrollments] = useState(null)
 
-  const handleClick = job => history.push(`/app/detail/job_opening/${job.id}`)
+  useEffect(() => {
+    if(avatarsFetched){
+      const enrls = enrolls.map(en => {
+        const av = studentsAvatar.find(s => en.studentDetail._id === s.id)
+        en.studentDetail.avatar = av.url
+        return en
+      })
+      setEnrollments(enrls)
+    }
+  }, [avatarsFetched])
+
+  const handleClick = enroll => history.push(`/app/detail/student`, enroll)
 
   return (
     <Grid container className={classes.root}>
-      <Grid item lg={6}>
-        <Paper>
+      <Grid item lg={7}>
+        <LinkCard title={job.position}>
           <List>
-            {enrolls && enrolls.map(enroll => (
-            <ListItem key={uuid()} button onClick={() => handleClick(enroll)}>
-              <EnrollListItem {...enroll}/>
-            </ListItem>
-            ))}
+            {enrollments &&
+              enrollments.map(enroll => (
+                <div key={uuid()}>
+                  <ListItem button onClick={() => handleClick(enroll)}>
+                    <EnrollListItem {...enroll}/>
+                  </ListItem>
+                  <Divider />
+                </div>
+              ))}
           </List>
-        </Paper>
+        </LinkCard>
       </Grid>
     </Grid>
   )

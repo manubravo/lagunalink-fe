@@ -3,7 +3,7 @@ import { green } from '@material-ui/core/colors'
 import { useSnackbar } from 'notistack'
 import { useEffect } from 'react'
 import { FormProvider, useForm } from 'react-hook-form'
-import { useDispatch, useSelector, shallowEqual } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { useHistory } from 'react-router-dom'
 import { actions } from '../../redux/user'
 import { EmailInput } from '../form/__shared__/EmailInput'
@@ -15,16 +15,14 @@ import { Title } from '../shared/Title'
 const useStyles = makeStyles(theme => ({
   root: {
     padding: '2em',
-    width: '90%',
-  },
-  button: {
-    paddingLeft: '4em',
-    paddingRight: '4em',
+    width: '100%',
+    maxWidth: 400
   },
   wrapper: {
     marginTop: theme.spacing(3),
     marginBottom: theme.spacing(6),
     position: 'relative',
+    width: '80%',
     display: 'flex',
     alignContent: 'center',
   },
@@ -48,9 +46,10 @@ const useStyles = makeStyles(theme => ({
     justifyContent: 'center',
   },
   rememberCnt: {
-    marginBottom: theme.spacing(5),
+    marginBottom: theme.spacing(6),
     display: 'flex',
-    justifyContent: 'center'
+    justifyContent: 'flex-end',
+    paddingRight: theme.spacing(3)
   },
   logo: {
     height: '80px',
@@ -61,11 +60,10 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
-export const SignInComponent = () => {
+export const SignInComponent = props => {
+  const { backendStatus } = props
   const history = useHistory()
   const { enqueueSnackbar } = useSnackbar()
-  const needStudentRegister = useSelector(state => state.user.needStudentRegister, shallowEqual)
-  const needCompanyRegister = useSelector(state => state.user.needCompanyRegister, shallowEqual)
   const isSignedIn = useSelector(state => state.user.isSignedIn)
   const isBusy = useSelector(state => state.user.isBusy)
   const inactiveError = useSelector(state => state.user.inactiveError)
@@ -79,20 +77,12 @@ export const SignInComponent = () => {
   }
 
   useEffect(() => {
+    if(backendStatus === 500) enqueueSnackbar('Backend Offline', { variant: 'error' }) 
+  }, [backendStatus])
+
+  useEffect(() => {
     dispatch(actions.getCredentials())
   }, [])
-
-  useEffect(() => {
-    if (needStudentRegister) {
-      history.push('/register/student')
-    }
-  }, [needStudentRegister])
-
-  useEffect(() => {
-    if (needCompanyRegister) {
-      history.push('/register/company')
-    }
-  }, [needCompanyRegister])
 
   useEffect(() => {
     if (isSignedIn === true) {
@@ -131,7 +121,7 @@ export const SignInComponent = () => {
             </Grid>
             <Grid item className={classes.flexCnt}>
               <div className={classes.wrapper}>
-                <Button color="primary" className={classes.button} disabled={isBusy} variant="contained" type="submit">
+                <Button color="primary" size="large" disabled={isBusy} variant="contained" type="submit" fullWidth>
                   Entrar
                 </Button>
                 {isBusy && <CircularProgress size={24} className={classes.buttonProgress} />}

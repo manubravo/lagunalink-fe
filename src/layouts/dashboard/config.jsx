@@ -16,14 +16,14 @@ export const config = {
     "md": true
   },
   "collapsedWidth": {
-    "xs": 64,
-    "sm": 64,
-    "md": 64
+    "xs": 70,
+    "sm": 70,
+    "md": 70
   },
   "clipped": {
-    "xs": false,
-    "sm": false,
-    "md": false
+    "xs": true,
+    "sm": true,
+    "md": true
   },
   "headerPosition": {
     "xs": "relative",
@@ -36,7 +36,7 @@ export const config = {
     "md": true
   },
   "footerShrink": {
-    "xs": false,
+    "xs": true,
     "sm": true,
     "md": true
   }

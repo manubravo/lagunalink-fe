@@ -1,16 +1,20 @@
-import { Avatar, Box, Button, Card, CardActions, CardContent, Divider, makeStyles, Typography } from '@material-ui/core'
+import { Box, Button, Card, CardActions, CardContent, Divider, makeStyles, Typography } from '@material-ui/core'
 import React from 'react'
 import { useDispatch } from 'react-redux'
 import { actions } from '../../../redux/user'
-import '../../shared/styles.css'
+import { StyledAvatar } from '../../avatar/StyledAvatar'
 
 const useStyles = makeStyles(theme => ({
   root: {
     minWidth: 300,
   },
+  username: {
+    fontFamily: 'Poppins',
+    fontSize: '2rem',
+    fontWeight: 500,
+    color: theme.palette.primary.main,
+  },
   avatar: {
-    height: 100,
-    width: 100,
     marginBottom: 10,
     opacity: 100,
   },
@@ -26,18 +30,22 @@ const useStyles = makeStyles(theme => ({
 }))
 
 export const Profile = props => {
-  const { userRole, prefName, avatar, isBusy } = props
+  const { profile, userRole, avatar, isBusy } = props
   const classes = useStyles()
   const dispatch = useDispatch()
   const role = userRole === 'ROLE_STUDENT' ? 'Estudiante' : 'Empresa'
+
+  const userName = profile !== null ? `${profile.name} ${profile.surname || ''}` : ''
 
   return (
     <Card className={classes.root}>
       <CardContent>
         <Box alignItems="center" display="flex" flexDirection="column">
-          <Avatar className={classes.avatar} src={avatar} />
-          <Typography color="textPrimary" gutterBottom variant="h3">
-            {prefName}
+          <Box className={classes.avatar}>
+            <StyledAvatar size={100} thickness={4} src={avatar} />
+          </Box>
+          <Typography color="textPrimary" gutterBottom className={classes.username}>
+            {userName}
           </Typography>
           <Typography color="textSecondary" variant="body1">
             {role}
